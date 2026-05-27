@@ -33,9 +33,6 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r border-border bg-card/50 backdrop-blur-xl">
       <div className="flex h-16 items-center gap-2 px-6 border-b border-border">
-        <div className="h-9 w-9 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-          W
-        </div>
         <div>
           <p className="font-semibold text-sm">{APP_NAME}</p>
           <p className="text-xs text-muted-foreground">Work, Relax, Talk</p>
@@ -52,7 +49,7 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-primary text-primary-foreground shadow-soft"
+                  ? "bg-foreground text-background shadow-soft"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >

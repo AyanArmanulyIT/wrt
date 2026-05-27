@@ -1,4 +1,4 @@
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -30,7 +30,14 @@ class FeedListView(generics.ListAPIView):
         user = self.request.user
         if not user.school_id:
             return Post.objects.none()
-        return _posts_queryset(user)
+        qs = _posts_queryset(user)
+        search = self.request.query_params.get("search", "").strip()
+        if search:
+            qs = qs.filter(
+                Q(content__icontains=search)
+                | Q(author__profile__username__icontains=search)
+            )
+        return qs
 
 
 class PostCreateView(generics.CreateAPIView):

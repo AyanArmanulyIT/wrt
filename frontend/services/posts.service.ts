@@ -6,9 +6,9 @@ import type {
   Post,
 } from "@/types/api.types";
 
-export async function fetchFeed(page = 1): Promise<PaginatedResponse<Post>> {
+export async function fetchFeed(page = 1, search = ""): Promise<PaginatedResponse<Post>> {
   const { data } = await api.get<PaginatedResponse<Post>>("/feed/", {
-    params: { page },
+    params: { page, search: search || undefined },
   });
   return data;
 }

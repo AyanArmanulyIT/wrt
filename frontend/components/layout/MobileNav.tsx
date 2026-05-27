@@ -30,7 +30,7 @@ export function MobileNav() {
               <Link
                 key="create"
                 href="/feed"
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-soft-lg -mt-6"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-background shadow-soft-lg -mt-6"
               >
                 <Icon className="h-6 w-6" />
               </Link>
@@ -42,7 +42,7 @@ export function MobileNav() {
               href={link}
               className={cn(
                 "flex flex-col items-center gap-0.5 text-xs transition-colors",
-                active ? "text-accent" : "text-muted-foreground"
+                active ? "text-foreground font-medium" : "text-muted-foreground"
               )}
             >
               <Icon className="h-5 w-5" />
