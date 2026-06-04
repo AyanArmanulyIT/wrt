@@ -4,6 +4,7 @@ export interface AdminStats {
   total_users: number;
   online_users: number;
   total_posts: number;
+  posts_today: number;
   active_classes: number;
   pending_verifications: number;
   banned_users: number;
@@ -23,6 +24,10 @@ export interface AdminUser {
   username: string;
   school_name: string | null;
   verification_status: string;
+  is_verified: boolean;
+  first_name: string;
+  last_name: string;
+  bio: string;
   is_banned: boolean;
   is_active: boolean;
   is_school_moderator: boolean;
@@ -87,6 +92,21 @@ export async function unbanUser(id: string): Promise<void> {
 
 export async function verifyUser(id: string): Promise<void> {
   await api.post(`/admin/users/${id}/verify/`);
+}
+
+export async function updateUser(
+  id: string,
+  data: {
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    bio?: string;
+    school_slug?: string;
+    school_class_id?: string | null;
+  }
+): Promise<AdminUser> {
+  const { data: result } = await api.patch<AdminUser>(`/admin/users/${id}/update/`, data);
+  return result;
 }
 
 export async function deletePost(id: string): Promise<void> {

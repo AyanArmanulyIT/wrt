@@ -79,15 +79,103 @@ class User(AbstractBaseUser, PermissionsMixin):
         )
 
 
+class ProfileTheme(models.Model):
+    """Тема оформления профиля."""
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(unique=True)
+    label_ru = models.CharField(max_length=100, blank=True)
+    primary_color = models.CharField(max_length=7, default="#818cf8")  # accent
+    gradient_from = models.CharField(max_length=7, default="#1e1b4b")
+    gradient_to = models.CharField(max_length=7, default="#0f0f0f")
+    card_border = models.CharField(max_length=7, default="#2e2e2e")
+    is_premium = models.BooleanField(default=False)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Тема профиля"
+        verbose_name_plural = "Темы профиля"
+        ordering = ["sort_order"]
+
+    def __str__(self):
+        return self.name
+
+
+class Achievement(models.Model):
+    """Достижение."""
+    class Category(models.TextChoices):
+        SOCIAL = "social", "Общение"
+        CONTENT = "content", "Контент"
+        STREAK = "streak", "Серия"
+        CLASS = "class", "Класс"
+        SPECIAL = "special", "Особое"
+
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True)
+    description = models.CharField(max_length=300, blank=True)
+    category = models.CharField(max_length=20, choices=Category.choices, default=Category.SOCIAL)
+    icon_name = models.CharField(max_length=50, default="Award")  # lucide icon name
+    condition_code = models.CharField(max_length=100, blank=True, help_text="Код условия, напр. posts>=10")
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Достижение"
+        verbose_name_plural = "Достижения"
+        ordering = ["sort_order"]
+
+    def __str__(self):
+        return self.name
+
+
+class UserAchievement(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="achievements")
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+    unlocked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Достижение пользователя"
+        verbose_name_plural = "Достижения пользователей"
+        unique_together = ("user", "achievement")
+        ordering = ["-unlocked_at"]
+
+    def __str__(self):
+        return f"{self.user_id} — {self.achievement.name}"
+
+
+class UserStreak(models.Model):
+    """Серия ежедневных входов."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="streak")
+    current_streak = models.PositiveSmallIntegerField(default=0)
+    longest_streak = models.PositiveSmallIntegerField(default=0)
+    last_login_date = models.DateField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Серия пользователя"
+        verbose_name_plural = "Серии пользователей"
+
+    def __str__(self):
+        return f"{self.user_id} — {self.current_streak} дней"
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     username = models.CharField(max_length=50, unique=True)
+    first_name = models.CharField("Имя", max_length=50, blank=True, default="")
+    last_name = models.CharField("Фамилия", max_length=50, blank=True, default="")
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     bio = models.CharField(max_length=300, blank=True)
     total_points = models.PositiveIntegerField(default=0)
     posts_count = models.PositiveIntegerField(default=0)
     comments_count = models.PositiveIntegerField(default=0)
     likes_received = models.PositiveIntegerField(default=0)
+    theme = models.ForeignKey(
+        ProfileTheme,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="profiles",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

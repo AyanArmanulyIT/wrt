@@ -31,6 +31,19 @@ export async function fetchMe(): Promise<User> {
   return data;
 }
 
+export interface UsernameCheckResult {
+  available: boolean;
+  was_banned: boolean;
+  error: string | null;
+}
+
+export async function checkUsername(username: string): Promise<UsernameCheckResult> {
+  const { data } = await api.get<UsernameCheckResult>("/auth/check-username/", {
+    params: { username },
+  });
+  return data;
+}
+
 export async function verifySchool(payload: {
   invite_code?: string;
   class_code?: string;

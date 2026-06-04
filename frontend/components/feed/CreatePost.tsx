@@ -5,11 +5,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, X } from "lucide-react";
 import { Button } from "@/ui/button";
 import { Card, CardContent } from "@/ui/card";
+import { Textarea } from "@/ui/textarea";
 import { createPost } from "@/services/posts.service";
 import { getErrorMessage } from "@/services/api";
 import { useAuthStore } from "@/store/auth.store";
 
-export function CreatePost() {
+interface CreatePostProps {
+  onSuccess?: () => void;
+}
+
+export function CreatePost({ onSuccess }: CreatePostProps = {}) {
   const user = useAuthStore((s) => s.user);
   const [content, setContent] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -29,6 +34,7 @@ export function CreatePost() {
       setError("");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["unread-count"] });
+      onSuccess?.();
     },
     onError: (err) => setError(getErrorMessage(err)),
   });
@@ -47,12 +53,12 @@ export function CreatePost() {
   return (
     <Card className="mb-4">
       <CardContent className="pt-6 space-y-3">
-        <textarea
+        <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Что нового?"
           rows={3}
-          className="w-full resize-none rounded-2xl border border-border bg-muted/30 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+          className="w-full resize-none bg-muted/30"
         />
         {preview ? (
           <div className="relative inline-block">

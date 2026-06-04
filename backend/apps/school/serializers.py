@@ -10,6 +10,7 @@ class SchoolSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slug",
+            "city",
             "verification_mode",
             "allowed_email_domains",
         )

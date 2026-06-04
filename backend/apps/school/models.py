@@ -13,6 +13,7 @@ class School(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField("Название", max_length=200)
     slug = models.SlugField("Slug", max_length=80, unique=True)
+    city = models.CharField("Город", max_length=100, blank=True, default="")
     logo = models.ImageField("Логотип", upload_to="schools/logos/", blank=True, null=True)
     verification_mode = models.CharField(
         max_length=20,
@@ -55,6 +56,14 @@ class SchoolClass(models.Model):
         verbose_name_plural = "Классы"
         unique_together = [("school", "name")]
         ordering = ["school", "name"]
+        indexes = [
+            # Leaderboard: all-time ranking by school
+            models.Index(fields=["school", "-total_points"]),
+            # Weekly leaderboard
+            models.Index(fields=["school", "-weekly_points"]),
+            # "Class of the week" query (school + weekly_points > 0)
+            models.Index(fields=["school", "-weekly_points", "name"]),
+        ]
 
     def __str__(self):
         return f"{self.school.name} — {self.name}"

@@ -12,6 +12,9 @@ urlpatterns = [
     path("api/v1/", include("apps.recommendations.urls")),
     path("api/v1/", include("apps.notifications.urls")),
     path("api/v1/", include("apps.adminpanel.urls")),
+    path("api/v1/", include("apps.chats.urls")),
+    path("api/v1/", include("apps.polls.urls")),
+    path("api/v1/", include("apps.events.urls")),
     path("api/health/", include("core.urls")),
 ]
 

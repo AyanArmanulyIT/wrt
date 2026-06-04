@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, FileText, LayoutDashboard, Users, ArrowLeft } from "lucide-react";
+import { BarChart3, FileText, LayoutDashboard, Users, ArrowLeft, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/admin", label: "Обзор", icon: LayoutDashboard },
+  { href: "/admin/dashboard", label: "Founder Dashboard", icon: TrendingUp },
   { href: "/admin/users", label: "Пользователи", icon: Users },
   { href: "/admin/posts", label: "Посты", icon: FileText },
 ];

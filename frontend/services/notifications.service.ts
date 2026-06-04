@@ -6,6 +6,7 @@ export interface Notification {
   type: "like" | "comment" | "class_rank";
   message: string;
   actor_username: string | null;
+  actor_avatar: string | null;
   post_id: string | null;
   is_read: boolean;
   created_at: string;

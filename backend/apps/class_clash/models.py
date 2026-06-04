@@ -1,7 +1,74 @@
 import uuid
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
+
+
+def _default_season_end():
+    return timezone.now() + timedelta(days=7)
+
+
+class ClashSeason(models.Model):
+    """Сезон Class Clash."""
+    season_number = models.PositiveIntegerField(unique=True)
+    name = models.CharField(max_length=100, blank=True)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(default=_default_season_end)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Сезон"
+        verbose_name_plural = "Сезоны"
+        ordering = ["-season_number"]
+
+    def __str__(self):
+        return f"Season #{self.season_number}"
+
+    @property
+    def is_over(self):
+        return timezone.now() > self.end_date
+
+    @property
+    def days_remaining(self):
+        delta = self.end_date - timezone.now()
+        return max(delta.days, 0)
+
+
+class ClassBadge(models.Model):
+    """Значок класса (Most Active, Fastest Growing, #1 This Week)."""
+    class BadgeType(models.TextChoices):
+        MOST_ACTIVE = "most_active", "🔥 Most Active"
+        FASTEST_GROWING = "fastest_growing", "⚡ Fastest Growing"
+        NUMBER_ONE = "number_one", "👑 #1 This Week"
+
+    school_class = models.ForeignKey(
+        "school.SchoolClass",
+        on_delete=models.CASCADE,
+        related_name="badges",
+    )
+    badge_type = models.CharField(max_length=30, choices=BadgeType.choices)
+    awarded_at = models.DateTimeField(auto_now_add=True)
+    season = models.ForeignKey(
+        ClashSeason,
+        on_delete=models.CASCADE,
+        related_name="badges",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Значок класса"
+        verbose_name_plural = "Значки классов"
+        ordering = ["-awarded_at"]
+        indexes = [
+            models.Index(fields=["school_class", "badge_type"]),
+        ]
+
+    def __str__(self):
+        return f"{self.get_badge_type_display()} — {self.school_class.name}"
 
 
 class PointEvent(models.Model):
