@@ -1,16 +1,34 @@
 from .base import *
+import dj_database_url
+import os
 
 # Production settings
 DEBUG = False
 
-# Security: use environment variable for SECRET_KEY in production
+# Security
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY environment variable is required in production")
 
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv("ALLOWED_HOSTS", "").split(",")
+    if h.strip()
+]
+
+# Database — используем DATABASE_URL от Railway
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
+
 # Security middleware
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "core.security.SecurityHeadersMiddleware",
     "core.security.RateLimitMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -22,11 +40,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# HTTPS/SSL settings
+# HTTPS/SSL
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-# HSTS - force HTTPS for 1 year
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
@@ -44,7 +60,7 @@ CSRF_TRUSTED_ORIGINS = [
     if o.strip()
 ]
 
-# CORS - restrict in production
+# CORS
 CORS_ALLOWED_ORIGINS = [
     o.strip()
     for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
@@ -52,9 +68,18 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+# Static files (WhiteNoise)
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = "static/"
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 # Upload security
-DATA_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024  # 8MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024  # 8MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024
 
 # Logging
 import logging
