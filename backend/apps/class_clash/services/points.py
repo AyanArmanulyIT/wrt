@@ -61,10 +61,6 @@ def award_points(
     reference_id=None,
     target_class_id=None,
 ) -> PointEvent | None:
-    """
-    Начисляет очки классу и пользователю.
-    target_class_id — для LIKE_RECEIVED (класс автора поста).
-    """
     points = POINT_VALUES.get(action, 0)
     if points <= 0:
         return None
@@ -128,9 +124,12 @@ def award_daily_login(user: User) -> None:
     ref = uuid_from_date(user.id, today)
     award_points(user, PointEvent.Action.DAILY_LOGIN, reference_id=ref)
 
+    # Update login streak
+    from apps.users.services.streak import update_user_streak
+    update_user_streak(user)
+
 
 def uuid_from_date(user_id, date):
-    """Детерминированный UUID для ежедневного лимита входа."""
     import uuid
 
     namespace = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
@@ -179,3 +178,46 @@ def get_school_leaderboard(school_id, weekly: bool = False):
         }
         for c in qs
     ]
+
+
+def get_top_contributors(school_class_id, limit=3):
+    """Top N users by total points in a class for the current week."""
+    week_start = get_week_start()
+    qs = (
+        PointEvent.objects
+        .filter(school_class_id=school_class_id, created_at__date__gte=week_start)
+        .values("user_id")
+        .annotate(points=Sum("points"))
+        .order_by("-points")[:limit]
+    )
+    user_ids = [row["user_id"] for row in qs]
+    profiles = {
+        p.user_id: p
+        for p in UserProfile.objects.filter(user_id__in=user_ids)
+        .select_related("user")
+    }
+    result = []
+    for row in qs:
+        profile = profiles.get(row["user_id"])
+        result.append({
+            "username": profile.username if profile else "unknown",
+            "points": row["points"],
+        })
+    return result
+
+
+def get_class_streak(school_class_id):
+    """How many consecutive days the class has had activity."""
+    today = timezone.localdate()
+    streak = 0
+    for i in range(60):
+        day = today - timedelta(days=i)
+        has_activity = PointEvent.objects.filter(
+            school_class_id=school_class_id,
+            created_at__date=day,
+        ).exists()
+        if has_activity:
+            streak += 1
+        else:
+            break
+    return streak

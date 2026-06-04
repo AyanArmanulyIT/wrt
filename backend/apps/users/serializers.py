@@ -2,20 +2,49 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from apps.school.models import School, SchoolClass
-from apps.users.models import UserProfile
+from apps.users.models import UserProfile, Achievement, UserAchievement, UserStreak, ProfileTheme
 from apps.users.services.verification import run_verification
 
 User = get_user_model()
 
 
+class ProfileThemeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileTheme
+        fields = ("slug", "label_ru", "primary_color", "gradient_from", "gradient_to", "card_border", "is_premium")
+
+
+class AchievementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Achievement
+        fields = ("name", "slug", "description", "category", "icon_name", "condition_code")
+
+
+class UserAchievementSerializer(serializers.ModelSerializer):
+    achievement = AchievementSerializer(read_only=True)
+
+    class Meta:
+        model = UserAchievement
+        fields = ("achievement", "unlocked_at")
+
+
+class UserStreakSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserStreak
+        fields = ("current_streak", "longest_streak", "last_login_date")
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class_name = serializers.CharField(source="user.school_class.name", read_only=True)
     school_name = serializers.CharField(source="user.school.name", read_only=True)
+    theme = ProfileThemeSerializer(read_only=True)
 
     class Meta:
         model = UserProfile
         fields = (
             "username",
+            "first_name",
+            "last_name",
             "avatar",
             "bio",
             "total_points",
@@ -24,6 +53,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "likes_received",
             "class_name",
             "school_name",
+            "theme",
         )
         read_only_fields = fields
 
@@ -47,6 +77,41 @@ class UserSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = fields
+
+
+class PublicProfileSerializer(serializers.Serializer):
+    """Full public profile data."""
+    username = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    avatar = serializers.URLField(allow_null=True)
+    bio = serializers.CharField()
+    total_points = serializers.IntegerField()
+    posts_count = serializers.IntegerField()
+    comments_count = serializers.IntegerField()
+    likes_received = serializers.IntegerField()
+    class_name = serializers.CharField(allow_null=True)
+    school_name = serializers.CharField(allow_null=True)
+    created_at = serializers.DateTimeField()
+    
+    # Achievements
+    achievements = UserAchievementSerializer(many=True)
+    
+    # Streak
+    streak = UserStreakSerializer(allow_null=True)
+    
+    # Theme
+    theme = ProfileThemeSerializer(allow_null=True)
+    
+    # Contribution from class_clash
+    week_points = serializers.IntegerField()
+    class_rank = serializers.IntegerField()
+    class_total = serializers.IntegerField()
+    contribution_by_action = serializers.DictField(child=serializers.IntegerField())
+    
+    # Badges
+    is_verified = serializers.BooleanField()
+    is_staff = serializers.BooleanField()
 
 
 class RegisterSerializer(serializers.Serializer):

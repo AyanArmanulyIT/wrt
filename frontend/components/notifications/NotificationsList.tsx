@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, Heart, MessageCircle, Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Avatar } from "@/ui/avatar";
 import { Button } from "@/ui/button";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/format";
@@ -70,7 +71,7 @@ export function NotificationsList() {
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-14 rounded-2xl bg-muted animate-pulse" />
+                <div key={i} className="h-16 rounded-2xl bg-muted animate-pulse" />
               ))}
             </div>
           ) : isError ? (
@@ -120,21 +121,45 @@ function NotificationItem({
           !n.is_read && "bg-accent/5 border border-accent/20"
         )}
       >
-        <div
-          className={cn(
-            "h-10 w-10 rounded-2xl flex items-center justify-center shrink-0",
-            n.type === "like" && "bg-red-500/10 text-red-500",
-            n.type === "comment" && "bg-blue-500/10 text-blue-500",
-            n.type === "class_rank" && "bg-accent/10 text-accent"
-          )}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
+        {n.actor_username ? (
+          <Link
+            href={`/profile/${n.actor_username}`}
+            onClick={(e) => e.stopPropagation()}
+            className="shrink-0"
+          >
+            <Avatar
+              name={n.actor_username}
+              src={n.actor_avatar}
+              size="sm"
+              className="ring-1 ring-white/10"
+            />
+          </Link>
+        ) : (
+          <div
+            className={cn(
+              "h-9 w-9 rounded-2xl flex items-center justify-center shrink-0",
+              n.type === "like" && "bg-red-500/10 text-red-500",
+              n.type === "comment" && "bg-white/10 text-white",
+              n.type === "class_rank" && "bg-accent/10 text-accent"
+            )}
+          >
+            <Icon className="h-4 w-4" />
+          </div>
+        )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm leading-snug">{n.message}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {formatRelativeTime(n.created_at)}
+          <p className="text-sm leading-snug">
+            {n.message}
           </p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-xs text-muted-foreground">
+              {formatRelativeTime(n.created_at)}
+            </p>
+            {n.actor_username ? (
+              <span className="text-xs text-muted-foreground">
+                · @{n.actor_username}
+              </span>
+            ) : null}
+          </div>
         </div>
         {!n.is_read ? (
           <span className="h-2 w-2 rounded-full bg-accent shrink-0 mt-2" />

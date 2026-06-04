@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-import { register, login, fetchMe } from "@/services/auth.service";
+import { register, login, fetchMe, checkUsername } from "@/services/auth.service";
 import { fetchSchools, fetchSchoolClasses } from "@/services/school.service";
 import { getErrorMessage } from "@/services/api";
 import { useAuthStore } from "@/store/auth.store";
@@ -22,6 +23,35 @@ export function RegisterForm() {
   const [classId, setClassId] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState("");
+
+  // Username live-check
+  const [usernameStatus, setUsernameStatus] = useState<
+    { state: "idle" | "loading" | "available" | "taken" | "banned"; message: string } | null
+  >(null);
+  const usernameTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    clearTimeout(usernameTimer.current);
+    const val = username.trim();
+    if (val.length < 3) {
+      setUsernameStatus(null);
+      return;
+    }
+    setUsernameStatus({ state: "loading", message: "Проверка..." });
+    usernameTimer.current = setTimeout(async () => {
+      try {
+        const res = await checkUsername(val);
+        if (res.available) {
+          setUsernameStatus({ state: "available", message: "Имя свободно" });
+        } else if (res.was_banned) {
+          setUsernameStatus({ state: "banned", message: "Имя занято (владелец забанен)" });
+        } else {
+          setUsernameStatus({ state: "taken", message: "Имя занято" });
+        }
+      } catch (_) {
+        setUsernameStatus(null);
+      }
+    }, 400);
+  }, [username]);
 
   const {
     data: schools = [],
@@ -92,12 +122,35 @@ export function RegisterForm() {
           </div>
           <div>
             <label className="text-sm font-medium mb-1.5 block">Имя пользователя</label>
-            <Input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="ivan_8a"
-              required
-            />
+            <div className="relative">
+              <Input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="ivan_8a"
+                required
+              />
+              {usernameStatus && usernameStatus.state === "loading" && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+              )}
+            </div>
+            {usernameStatus && usernameStatus.state !== "loading" ? (
+              <div className="flex items-center gap-1.5 mt-1.5">
+                {usernameStatus.state === "available" ? (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                ) : (
+                  <AlertCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                )}
+                <span
+                  className={`text-xs ${
+                    usernameStatus.state === "available"
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {usernameStatus.message}
+                </span>
+              </div>
+            ) : null}
           </div>
           <div>
             <label className="text-sm font-medium mb-1.5 block">Пароль</label>
@@ -138,7 +191,7 @@ export function RegisterForm() {
               <option value="">Выберите школу</option>
               {schools.map((s) => (
                 <option key={s.id} value={s.slug}>
-                  {s.name}
+                  {s.name}{s.city ? ` (${s.city})` : ""}
                 </option>
               ))}
             </select>

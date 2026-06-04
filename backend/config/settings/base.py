@@ -24,6 +24,7 @@ ALLOWED_HOSTS = [
 
 # --- Applications ---
 INSTALLED_APPS = [
+    "daphne",  # Channels ASGI server
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -35,6 +36,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "django_filters",
+    "channels",
     # WRT apps
     "apps.school",
     "apps.users",
@@ -45,6 +47,9 @@ INSTALLED_APPS = [
     "apps.recommendations",
     "apps.analytics",
     "apps.adminpanel",
+    "apps.chats",
+    "apps.polls",
+    "apps.events",
 ]
 
 MIDDLEWARE = [
@@ -61,6 +66,16 @@ MIDDLEWARE = [
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
+
+# --- Django Channels ---
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(os.getenv("REDIS_HOST", "localhost"), int(os.getenv("REDIS_PORT", "6379")))],
+        },
+    },
+}
 
 TEMPLATES = [
     {

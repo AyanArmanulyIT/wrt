@@ -8,9 +8,33 @@ const inter = Inter({
   variable: "--font-geist-sans",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://wrt.app";
+
 export const metadata: Metadata = {
-  title: "WRT — Work, Relax, Talk",
-  description: "Школьная соцсеть с Class Clash",
+  title: {
+    default: "WRT — Work, Relax, Talk",
+    template: "%s | WRT",
+  },
+  description: "Школьная соцсеть. Общайся, участвуй в Class Clash, голосуй за лучшие посты и события школы.",
+  keywords: ["школьная соцсеть", "class clash", "школа", "общение", "социальная сеть"],
+  authors: [{ name: "WRT" }],
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    siteName: "WRT",
+    title: "WRT — Work, Relax, Talk",
+    description: "Школьная соцсеть с Class Clash",
+    url: siteUrl,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WRT — Work, Relax, Talk",
+    description: "Школьная соцсеть с Class Clash",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

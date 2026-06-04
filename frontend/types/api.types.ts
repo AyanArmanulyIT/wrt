@@ -2,6 +2,8 @@ export type VerificationStatus = "pending" | "verified" | "rejected";
 
 export interface UserProfile {
   username: string;
+  first_name: string;
+  last_name: string;
   avatar: string | null;
   bio: string;
   total_points: number;
@@ -30,6 +32,7 @@ export interface School {
   id: string;
   name: string;
   slug: string;
+  city: string;
   verification_mode: "invite" | "email" | "class_code" | "manual";
   allowed_email_domains: string[];
 }
@@ -60,6 +63,12 @@ export interface PostAuthor {
   class_name: string | null;
 }
 
+export interface PostReaction {
+  emoji: string;
+  count: number;
+  user_reacted: boolean;
+}
+
 export interface Post {
   id: string;
   author: PostAuthor;
@@ -67,7 +76,11 @@ export interface Post {
   image: string | null;
   likes_count: number;
   comments_count: number;
+  views_count: number;
+  engagement_score: number;
+  is_pinned: boolean;
   is_liked: boolean;
+  reactions: PostReaction[];
   created_at: string;
 }
 

@@ -12,9 +12,14 @@ export default function MainLayout({
     <AuthGuard>
       <div className="min-h-screen bg-background">
         <Sidebar />
-        <div className="lg:pl-64 flex flex-col min-h-screen">
+        <div className="lg:pl-64 flex flex-col min-h-screen safe-area-pt">
           <Header />
-          <main className="flex-1 pb-20 lg:pb-8">{children}</main>
+          <main
+            id="main-content"
+            className="flex-1 pb-[calc(var(--nav-height)+var(--safe-area-bottom))] lg:pb-8"
+          >
+            {children}
+          </main>
         </div>
         <MobileNav />
       </div>

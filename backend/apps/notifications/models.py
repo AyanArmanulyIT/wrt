@@ -9,6 +9,7 @@ class Notification(models.Model):
         LIKE = "like", "Лайк"
         COMMENT = "comment", "Комментарий"
         CLASS_RANK = "class_rank", "Рейтинг класса"
+        ACHIEVEMENT = "achievement", "Достижение"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     recipient = models.ForeignKey(

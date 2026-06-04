@@ -40,12 +40,16 @@ def get_admin_stats(admin_user):
         is_active=True,
     )
 
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    posts_today = posts_qs.filter(created_at__gte=today_start).count()
+
     pending = users_qs.filter(verification_status=User.VerificationStatus.PENDING).count()
 
     return {
         "total_users": users_qs.count(),
         "online_users": online_qs.count(),
         "total_posts": posts_qs.count(),
+        "posts_today": posts_today,
         "active_classes": classes_qs.filter(weekly_points__gt=0).count(),
         "pending_verifications": pending,
         "banned_users": users_qs.filter(is_banned=True).count(),
